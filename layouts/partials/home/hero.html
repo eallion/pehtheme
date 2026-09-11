@@ -1,229 +1,275 @@
 {{- /* Hero Parent Template: 统一管理前台布局与组件，动态挂载平级的背景主题 (dsh, image, video 等) */ -}}
 {{- $heroStyle := site.Params.heroStyle | default site.Params.hero_style | default "dsh" -}}
 {{- if eq $heroStyle "pehe" -}}
-  {{- partial "home/hero-pehe.html" . -}}
+{{- partial "home/hero-pehe.html" . -}}
 {{- else -}}
-  {{- /* 站点统计数据计算（与 content/stats-partial.html 逻辑一致） */ -}}
-  {{- $articleCount := 0 -}}
-  {{- range .Site.RegularPages -}}
-    {{- if eq .Type "blog" -}}
-      {{- $articleCount = add $articleCount 1 -}}
-    {{- end -}}
+{{- /* 站点统计数据计算（与 content/stats-partial.html 逻辑一致） */ -}}
+{{- $articleCount := 0 -}}
+{{- range .Site.RegularPages -}}
+{{- if eq .Type "blog" -}}
+{{- $articleCount = add $articleCount 1 -}}
+{{- end -}}
+{{- end -}}
+{{- $categories := slice -}}
+{{- $tags := slice -}}
+{{- range .Site.RegularPages -}}
+{{- if .Params.categories -}}
+{{- $categories = union $categories .Params.categories -}}
+{{- end -}}
+{{- if .Params.tags -}}
+{{- $tags = union $tags .Params.tags -}}
+{{- end -}}
+{{- end -}}
+{{- $categoryCount := len $categories -}}
+{{- $tagCount := len $tags -}}
+{{- $scratch := newScratch -}}
+{{- range (where .Site.Pages "Kind" "page") -}}
+{{- $scratch.Add "total" .WordCount -}}
+{{- end -}}
+{{- $totalWords := $scratch.Get "total" -}}
+
+<section class="ds-hero-root relative flex flex-col justify-center items-center -mt-20 md:-mt-24">
+  <!-- Dynamic Peer Background (dsh, image, video, or any future style) -->
+  {{- $bgPartial := printf "home/hero-%s.html" $heroStyle -}}
+  {{- if templates.Exists (printf "partials/%s" $bgPartial) -}}
+  {{- partial $bgPartial . -}}
+  {{- else -}}
+  {{- partial "home/hero-dsh.html" . -}}
   {{- end -}}
-  {{- $categories := slice -}}
-  {{- $tags := slice -}}
-  {{- range .Site.RegularPages -}}
-    {{- if .Params.categories -}}
-      {{- $categories = union $categories .Params.categories -}}
-    {{- end -}}
-    {{- if .Params.tags -}}
-      {{- $tags = union $tags .Params.tags -}}
-    {{- end -}}
-  {{- end -}}
-  {{- $categoryCount := len $categories -}}
-  {{- $tagCount := len $tags -}}
-  {{- $scratch := newScratch -}}
-  {{- range (where .Site.Pages "Kind" "page") -}}
-    {{- $scratch.Add "total" .WordCount -}}
-  {{- end -}}
-  {{- $totalWords := $scratch.Get "total" -}}
 
-  <section class="ds-hero-root relative flex flex-col justify-center items-center -mt-20 md:-mt-24">
-    <!-- Dynamic Peer Background (dsh, image, video, or any future style) -->
-    {{- $bgPartial := printf "home/hero-%s.html" $heroStyle -}}
-    {{- if templates.Exists (printf "partials/%s" $bgPartial) -}}
-      {{- partial $bgPartial . -}}
-    {{- else -}}
-      {{- partial "home/hero-dsh.html" . -}}
-    {{- end -}}
+  <!-- Content Grid Container (left + right columns as one block) -->
+  <div
+    class="ds-hero-content ds-container flex flex-col justify-between min-h-[100svh] pt-20 sm:pt-24 pb-6 sm:pb-8 md:min-h-0 md:grid md:grid-cols-[60fr_40fr] md:gap-ds-9 md:items-center md:pt-36 md:pb-ds-11 w-full mx-auto">
 
-    <!-- Content Grid Container (left + right columns as one block) -->
-    <div class="ds-hero-content ds-container flex flex-col justify-between min-h-[100svh] pt-20 sm:pt-24 pb-6 sm:pb-8 md:min-h-0 md:grid md:grid-cols-[60fr_40fr] md:gap-ds-9 md:items-center md:pt-36 md:pb-ds-11 w-full mx-auto">
-      
-      <!-- Left Column: Title & CTA -->
-      <div class="flex flex-col gap-ds-7 order-1 my-auto md:my-0">
-        <div class="ds-hero-enter flex flex-col gap-ds-4 items-start" style="--enter-y:24px;--enter-blur:10px;animation-duration:0.9s">
-          <p data-hero-preview-label="true" class="whitespace-nowrap font-ds-sans text-base font-medium leading-none tracking-[-0.01em] text-white sm:text-[17px] md:text-lg pl-0.75">
-            大大的小蜗牛 的 博客
-          </p>
-          <h1 class="ds-text-hero text-ds-primary max-w-full" style="letter-spacing:0.2px">
-            <span class="text-4xl sm:text-6xl md:text-7xl block max-w-full"><svg class="max-w-full h-auto w-auto" height="1em" fill="currentColor" viewBox="0 0 196 36"><path fill="none" d="M0 0h196v36H0z"></path><path d="M195.036 10.656q-.504.108-1.367.396-.828.288-1.513.612-.455.192-.606.32l.03.076q.612 1.692.612 3.744.0 2.124-.576 3.78-.54 1.62-1.836 2.52-1.26.9-3.456.9-1.194.0-2.137-.296-.155.23-.346.548-.324.504-.324 1.008.0.396.395.648.432.252 1.332.324l3.492.325q2.448.215 3.636 1.475t1.189 3.6q0 1.728-.829 2.916-.792 1.188-2.412 1.764-1.62.612-4.139.612-1.908.0-3.456-.432-1.513-.396-2.413-1.26-.864-.864-.864-2.268.0-1.08.504-1.907a5 5 0 011.296-1.369q.578-.42 1.194-.707-.902-.236-1.41-.77-.684-.72-.683-1.583.0-1.296.719-2.196a18 18 0 011.529-1.573q-1.129-.904-1.708-2.386-.613-1.657-.613-3.78.0-2.413.685-4.033.684-1.656 2.016-2.484 1.367-.864 3.347-.864 2.053.0 3.349 1.044.597.466 1.049 1.08.345-.443 1.146-1.044a10.8 10.8.0 012.16-1.26zm-10.584 17.63a16 16 0 00-.647.658 5 5 0 00-.72.9 2.14 2.14.0 00-.288 1.08q0 .936.792 1.404.828.468 2.916.468 2.051.0 3.023-.504 1.008-.468 1.008-1.512.0-.648-.252-1.08-.252-.396-.863-.648-.613-.252-1.765-.36zM77.378.0q2.953.0 4.68 1.116 1.728 1.116 2.484 3.168.792 2.052.792 4.932v11.088q0 2.844-.792 4.969-.756 2.124-2.483 3.311-1.728 1.152-4.681 1.152-2.952.0-4.716-1.152-1.763-1.152-2.52-3.275-.755-2.16-.756-5.04V9.216q0-2.88.757-4.932.791-2.088 2.52-3.168Q74.425.0 77.377.0m44.063 8.316q2.592.0 3.96 1.62 1.368 1.584 1.584 3.852l-2.735.972a9 9 0 00-.433-1.872q-.288-.828-.827-1.26-.54-.468-1.404-.468-.936.0-1.512.649-.54.612-.54 1.475.0.54.216 1.08.252.504.828 1.008l3.672 3.384q.756.684 1.404 1.476a6.9 6.9.0 011.116 1.8q.432 1.008.432 2.34.0 1.764-.721 2.952a4.6 4.6.0 01-2.015 1.8q-1.296.576-3.025.576-2.555.0-4.103-1.584-1.548-1.62-1.764-4.248l3.203-.971q.288 1.98.973 2.987.684.972 2.016.972 1.044.0 1.584-.576.54-.612.54-1.62.0-.9-.396-1.62t-1.296-1.476l-3.564-3.06a10 10 0 01-1.836-2.088q-.72-1.152-.72-2.988.0-1.656.648-2.772a4.34 4.34.0 011.872-1.728q1.224-.612 2.843-.612m49.698.0q2.303.0 3.599.936 1.332.936 1.872 2.664.576 1.728.577 4.068v6.048q0 2.34-.577 4.069-.54 1.727-1.872 2.663-1.296.936-3.599.936t-3.636-.936q-1.332-.936-1.908-2.663-.54-1.729-.54-4.069v-6.048q0-2.34.54-4.068.576-1.728 1.908-2.664t3.636-.936M11.305 3.276H4.068v9.648h5.869v2.88H4.068v10.692h7.308v2.916H0V.252h11.305zM29.42 29.412h-3.853l-1.332-7.344h-5.94l-1.403 7.344h-3.817L19.27.252h3.923zm7.026-2.916H43.9v2.916H32.38V.252h4.068zm14.309.0h7.452v2.916h-11.52V.252h4.068zm14.453 2.916h-3.996V.252h3.996zM101.133.062q1.449.0 2.449.75 1 .7 1.5 2.1.5 1.35.5 3.3v23.2h-3.649v-22.4q0-2.25-.701-3.15-.65-.95-2.05-.95-1.25.0-2.55.75t-2.45 1.95v23.8h-3.65V.512h3.65v3a12.4 12.4.0 013.15-2.45 7.53 7.53.0 013.801-1m44.196.19q1.98.0 3.42.433 1.476.431 2.448 1.33.972.901 1.441 2.305.468 1.369.467 3.24.0 1.8-.467 3.132-.433 1.296-1.368 2.052-.9.756-2.34.972 1.764.396 2.843 1.368 1.08.936 1.584 2.448.54 1.476.54 3.564.0 1.872-.432 3.42-.431 1.548-1.367 2.629-.9 1.08-2.341 1.69-1.404.577-3.348.577h-7.776V.252zm16.071 29.16h-3.852V.252h3.852zm9.739-18.252q-1.116.0-1.584.684-.468.648-.576 1.692-.073 1.044-.073 2.233v6.515q0 1.152.073 2.232.108 1.044.576 1.692t1.584.648 1.548-.648q.468-.648.54-1.692.108-1.08.108-2.232V15.77q0-1.188-.108-2.233-.072-1.044-.54-1.692-.434-.684-1.548-.684M77.378 3.168q-1.62.0-2.484.648-.828.612-1.116 1.8-.288 1.152-.288 2.772v12.78q0 1.62.288 2.844.288 1.188 1.116 1.872.864.648 2.484.648t2.448-.648q.828-.684 1.116-1.872.288-1.224.289-2.844V8.388q0-1.62-.289-2.772-.288-1.188-1.116-1.8-.828-.648-2.448-.648M142.7 26.496h2.737q2.735.0 3.635-1.26.936-1.296.936-4.14.0-1.836-.504-3.06-.468-1.26-1.548-1.872-1.044-.648-2.844-.648H142.7zm43.659-15.444q-.792.0-1.296.324-.467.288-.755.9-.252.576-.361 1.44a24 24 0 00-.071 1.98q0 .972.071 1.8.109.829.361 1.44.252.612.719.972.504.324 1.296.324.793.0 1.261-.288.468-.324.684-.9.252-.576.324-1.404.107-.864.107-1.944t-.071-1.944q-.072-.864-.324-1.44-.252-.611-.72-.936-.469-.324-1.225-.324m-167.523 8.1h4.86l-2.448-13.14zM142.7 12.42h2.412q1.728.0 2.7-.468.972-.504 1.369-1.584.395-1.08.395-2.807.0-2.016-.612-2.916t-1.907-1.117q-1.296-.252-3.385-.252h-.972zm-28.64-8.676q0 2.808-.792 4.392-.793 1.548-2.773 1.656l-.684-1.44q1.116-.072 1.512-1.043.433-.972.433-2.989h-1.908V.252h4.212z"></path></svg></span>  
-          </h1>
-        </div>
+    <!-- Left Column: Title & CTA -->
+    <div class="flex flex-col gap-ds-7 order-1 my-auto md:my-0">
+      <div class="ds-hero-enter flex flex-col gap-ds-4 items-start"
+        style="--enter-y:24px;--enter-blur:10px;animation-duration:0.9s">
+        <p data-hero-preview-label="true"
+          class="whitespace-nowrap font-ds-sans text-base font-medium leading-none tracking-[-0.01em] text-white sm:text-[17px] md:text-lg pl-0.75">
+          大大的小蜗牛 的 博客
+        </p>
+        <h1 class="ds-text-hero text-ds-primary max-w-full" style="letter-spacing:0.2px">
+          <span class="text-4xl sm:text-6xl md:text-7xl block max-w-full"><svg class="max-w-full h-auto w-auto"
+              height="1em" fill="currentColor" viewBox="0 0 196 36">
+              <path fill="none" d="M0 0h196v36H0z"></path>
+              <path
+                d="M195.036 10.656q-.504.108-1.367.396-.828.288-1.513.612-.455.192-.606.32l.03.076q.612 1.692.612 3.744.0 2.124-.576 3.78-.54 1.62-1.836 2.52-1.26.9-3.456.9-1.194.0-2.137-.296-.155.23-.346.548-.324.504-.324 1.008.0.396.395.648.432.252 1.332.324l3.492.325q2.448.215 3.636 1.475t1.189 3.6q0 1.728-.829 2.916-.792 1.188-2.412 1.764-1.62.612-4.139.612-1.908.0-3.456-.432-1.513-.396-2.413-1.26-.864-.864-.864-2.268.0-1.08.504-1.907a5 5 0 011.296-1.369q.578-.42 1.194-.707-.902-.236-1.41-.77-.684-.72-.683-1.583.0-1.296.719-2.196a18 18 0 011.529-1.573q-1.129-.904-1.708-2.386-.613-1.657-.613-3.78.0-2.413.685-4.033.684-1.656 2.016-2.484 1.367-.864 3.347-.864 2.053.0 3.349 1.044.597.466 1.049 1.08.345-.443 1.146-1.044a10.8 10.8.0 012.16-1.26zm-10.584 17.63a16 16 0 00-.647.658 5 5 0 00-.72.9 2.14 2.14.0 00-.288 1.08q0 .936.792 1.404.828.468 2.916.468 2.051.0 3.023-.504 1.008-.468 1.008-1.512.0-.648-.252-1.08-.252-.396-.863-.648-.613-.252-1.765-.36zM77.378.0q2.953.0 4.68 1.116 1.728 1.116 2.484 3.168.792 2.052.792 4.932v11.088q0 2.844-.792 4.969-.756 2.124-2.483 3.311-1.728 1.152-4.681 1.152-2.952.0-4.716-1.152-1.763-1.152-2.52-3.275-.755-2.16-.756-5.04V9.216q0-2.88.757-4.932.791-2.088 2.52-3.168Q74.425.0 77.377.0m44.063 8.316q2.592.0 3.96 1.62 1.368 1.584 1.584 3.852l-2.735.972a9 9 0 00-.433-1.872q-.288-.828-.827-1.26-.54-.468-1.404-.468-.936.0-1.512.649-.54.612-.54 1.475.0.54.216 1.08.252.504.828 1.008l3.672 3.384q.756.684 1.404 1.476a6.9 6.9.0 011.116 1.8q.432 1.008.432 2.34.0 1.764-.721 2.952a4.6 4.6.0 01-2.015 1.8q-1.296.576-3.025.576-2.555.0-4.103-1.584-1.548-1.62-1.764-4.248l3.203-.971q.288 1.98.973 2.987.684.972 2.016.972 1.044.0 1.584-.576.54-.612.54-1.62.0-.9-.396-1.62t-1.296-1.476l-3.564-3.06a10 10 0 01-1.836-2.088q-.72-1.152-.72-2.988.0-1.656.648-2.772a4.34 4.34.0 011.872-1.728q1.224-.612 2.843-.612m49.698.0q2.303.0 3.599.936 1.332.936 1.872 2.664.576 1.728.577 4.068v6.048q0 2.34-.577 4.069-.54 1.727-1.872 2.663-1.296.936-3.599.936t-3.636-.936q-1.332-.936-1.908-2.663-.54-1.729-.54-4.069v-6.048q0-2.34.54-4.068.576-1.728 1.908-2.664t3.636-.936M11.305 3.276H4.068v9.648h5.869v2.88H4.068v10.692h7.308v2.916H0V.252h11.305zM29.42 29.412h-3.853l-1.332-7.344h-5.94l-1.403 7.344h-3.817L19.27.252h3.923zm7.026-2.916H43.9v2.916H32.38V.252h4.068zm14.309.0h7.452v2.916h-11.52V.252h4.068zm14.453 2.916h-3.996V.252h3.996zM101.133.062q1.449.0 2.449.75 1 .7 1.5 2.1.5 1.35.5 3.3v23.2h-3.649v-22.4q0-2.25-.701-3.15-.65-.95-2.05-.95-1.25.0-2.55.75t-2.45 1.95v23.8h-3.65V.512h3.65v3a12.4 12.4.0 013.15-2.45 7.53 7.53.0 013.801-1m44.196.19q1.98.0 3.42.433 1.476.431 2.448 1.33.972.901 1.441 2.305.468 1.369.467 3.24.0 1.8-.467 3.132-.433 1.296-1.368 2.052-.9.756-2.34.972 1.764.396 2.843 1.368 1.08.936 1.584 2.448.54 1.476.54 3.564.0 1.872-.432 3.42-.431 1.548-1.367 2.629-.9 1.08-2.341 1.69-1.404.577-3.348.577h-7.776V.252zm16.071 29.16h-3.852V.252h3.852zm9.739-18.252q-1.116.0-1.584.684-.468.648-.576 1.692-.073 1.044-.073 2.233v6.515q0 1.152.073 2.232.108 1.044.576 1.692t1.584.648 1.548-.648q.468-.648.54-1.692.108-1.08.108-2.232V15.77q0-1.188-.108-2.233-.072-1.044-.54-1.692-.434-.684-1.548-.684M77.378 3.168q-1.62.0-2.484.648-.828.612-1.116 1.8-.288 1.152-.288 2.772v12.78q0 1.62.288 2.844.288 1.188 1.116 1.872.864.648 2.484.648t2.448-.648q.828-.684 1.116-1.872.288-1.224.289-2.844V8.388q0-1.62-.289-2.772-.288-1.188-1.116-1.8-.828-.648-2.448-.648M142.7 26.496h2.737q2.735.0 3.635-1.26.936-1.296.936-4.14.0-1.836-.504-3.06-.468-1.26-1.548-1.872-1.044-.648-2.844-.648H142.7zm43.659-15.444q-.792.0-1.296.324-.467.288-.755.9-.252.576-.361 1.44a24 24 0 00-.071 1.98q0 .972.071 1.8.109.829.361 1.44.252.612.719.972.504.324 1.296.324.793.0 1.261-.288.468-.324.684-.9.252-.576.324-1.404.107-.864.107-1.944t-.071-1.944q-.072-.864-.324-1.44-.252-.611-.72-.936-.469-.324-1.225-.324m-167.523 8.1h4.86l-2.448-13.14zM142.7 12.42h2.412q1.728.0 2.7-.468.972-.504 1.369-1.584.395-1.08.395-2.807.0-2.016-.612-2.916t-1.907-1.117q-1.296-.252-3.385-.252h-.972zm-28.64-8.676q0 2.808-.792 4.392-.793 1.548-2.773 1.656l-.684-1.44q1.116-.072 1.512-1.043.433-.972.433-2.989h-1.908V.252h4.212z">
+              </path>
+            </svg></span>
+        </h1>
+      </div>
 
-        <div class="ds-hero-enter max-w-140 flex flex-col gap-ds-2" style="--enter-y:20px;--enter-blur:8px;animation-delay:0.15s">
-          <p class="ds-text-body text-ds-description">
-            <i>Chance favors the prepared mind. - Louis Pasteur</i>
-          </p>
-          <p class="ds-text-body text-ds-description">
-            <span id="ds-motto-type" aria-live="polite"></span><span class="ds-motto-caret" aria-hidden="true"></span>
-          </p>
-          <p class="ds-text-body text-ds-description ds-keywords">
-            <span class="ds-keywords-line"><span class="ds-keyword">Gemini</span>, <span class="ds-keyword">Millennials</span>, <span class="ds-keyword">Tiger</span>, <span class="ds-keyword">Normie</span>, <span class="ds-keyword">Kōjigen</span>, <span class="ds-keyword">N24SWD</span>, <span class="ds-keyword">AIWS</span>, <span class="ds-keyword">Upekkhā</span>.</span><br />
-            <span class="ds-keywords-line"><span class="ds-keyword">Geeker</span>, <span class="ds-keyword">Gamer</span>, <span class="ds-keyword">Blogger</span>.</span>
-          </p>
-        </div>
+      <div class="ds-hero-enter max-w-140 flex flex-col gap-ds-2"
+        style="--enter-y:20px;--enter-blur:8px;animation-delay:0.15s">
+        <p class="ds-text-body text-ds-description">
+          <i>Chance favors the prepared mind. - Louis Pasteur</i>
+        </p>
+        <p class="ds-text-body text-ds-description">
+          <span id="ds-motto-type" aria-live="polite"></span><span class="ds-motto-caret" aria-hidden="true"></span>
+        </p>
+        <p class="ds-text-body text-ds-description ds-keywords">
+          <span class="ds-keywords-line"><span class="ds-keyword">Gemini</span>, <span
+              class="ds-keyword">Millennials</span>, <span class="ds-keyword">Tiger</span>, <span
+              class="ds-keyword">Normie</span>, <span class="ds-keyword">Kōjigen</span>, <span
+              class="ds-keyword">N24SWD</span>, <span class="ds-keyword">AIWS</span>, <span
+              class="ds-keyword">Upekkhā</span>.</span><br />
+          <span class="ds-keywords-line"><span class="ds-keyword">Geeker</span>, <span class="ds-keyword">Gamer</span>,
+            <span class="ds-keyword">Blogger</span>.</span>
+        </p>
+      </div>
 
-        <!-- CTA Buttons (Unified for PC & Mobile, tightly follows .ds-keywords) -->
-        {{- $followPlatforms := slice "mastodon" "twitter" "x" "threads" "bluesky" "weibo" "instagram" "facebook" "youtube" "tiktok" "bilibili" "fediverse" "pixelfed" "line" "telegram" "douban" -}}
-        {{ with .Site.Params.social }}
-        <div class="ds-hero-enter flex flex-wrap items-center gap-2.5 sm:gap-3 md:gap-ds-4 mt-2.5 sm:mt-3 md:mt-ds-2 ds-social-group" style="--enter-y:16px;animation-duration:0.7s;animation-delay:0.3s">
-          {{ range $index, $item := . }}
-            {{ $isFirst := eq $index 0 }}
-            {{ $rel := "noopener noreferrer" }}
-            {{ $cleanIcon := replaceRE "(-full)?-color$" "" (lower (or $item.icon "")) }}
-            {{ $action := $item.action }}
-            {{ if not $action }}
-              {{ $action = "查看" }}
-              {{ if or (in $followPlatforms $cleanIcon) (in $followPlatforms (lower $item.name)) }}
-                {{ $action = "关注" }}
-              {{ end }}
-            {{ end }}
-            {{ if or (eq (lower $item.name) "mastodon") (eq $cleanIcon "mastodon") }}
-              {{ $rel = "me noopener noreferrer" }}
-            {{ end }}
-            {{ $label := printf "%s %s" $action $item.name }}
-            <a class="ds-btn-secondary ds-btn-m ds-social-btn{{ if $isFirst }} is-expanded{{ end }}" href="{{ $item.url }}" target="_blank" rel="{{ $rel }}" aria-label="{{ $label }}">
-              {{ partial "icon.html" (dict "name" $item.icon "class" "h-5 w-5 fill-current shrink-0") }}
-              <span class="ds-social-label">{{ $label }}</span>
-            </a>
-          {{ end }}
-        </div>
+      <!-- CTA Buttons (Unified for PC & Mobile, tightly follows .ds-keywords) -->
+      {{- $followPlatforms := slice "mastodon" "twitter" "x" "threads" "bluesky" "weibo" "instagram" "facebook"
+      "youtube" "tiktok" "bilibili" "fediverse" "pixelfed" "line" "telegram" "douban" -}}
+      {{ with .Site.Params.social }}
+      <div
+        class="ds-hero-enter flex flex-wrap items-center gap-2.5 sm:gap-3 md:gap-ds-4 mt-2.5 sm:mt-3 md:mt-ds-2 ds-social-group"
+        style="--enter-y:16px;animation-duration:0.7s;animation-delay:0.3s">
+        {{ range $index, $item := . }}
+        {{ $isFirst := eq $index 0 }}
+        {{ $rel := "noopener noreferrer" }}
+        {{ $cleanIcon := replaceRE "(-full)?-color$" "" (lower (or $item.icon "")) }}
+        {{ $action := $item.action }}
+        {{ if not $action }}
+        {{ $action = "查看" }}
+        {{ if or (in $followPlatforms $cleanIcon) (in $followPlatforms (lower $item.name)) }}
+        {{ $action = "关注" }}
+        {{ end }}
+        {{ end }}
+        {{ if or (eq (lower $item.name) "mastodon") (eq $cleanIcon "mastodon") }}
+        {{ $rel = "me noopener noreferrer" }}
+        {{ end }}
+        {{ $label := printf "%s %s" $action $item.name }}
+        <a class="ds-btn-secondary ds-btn-m ds-social-btn{{ if $isFirst }} is-expanded{{ end }}" href="{{ $item.url }}"
+          target="_blank" rel="{{ $rel }}" aria-label="{{ $label }}">
+          {{ partial "icon.html" (dict "name" $item.icon "class" "h-5 w-5 fill-current shrink-0") }}
+          <span class="ds-social-label">{{ $label }}</span>
+        </a>
         {{ end }}
       </div>
+      {{ end }}
+    </div>
 
-      <!-- Right Column: Interactive Terminal Card (Mobile: bottom pinned; Desktop: right col) -->
-      <div class="ds-hero-enter flex flex-col gap-ds-3 order-2 mt-auto md:mt-0 w-full mb-1.5 sm:mb-3 md:mb-0" style="--enter-y:20px;animation-duration:0.9s;animation-delay:0.4s">
-        <!-- Tabs -->
-        <div class="flex gap-ds-1 px-ds-1 ml-1.5">
-          <button id="ds-tab-web" type="button" class="ds-tab-btn is-active px-ds-4 py-ds-2 text-[13px] font-medium transition-all cursor-pointer rounded-t-lg border border-b-0 text-ds-primary bg-black/20 backdrop-blur-xl border-white/8">
-            统计 / Stats
-          </button>
-          <button id="ds-tab-start" type="button" class="ds-tab-btn px-ds-4 py-ds-2 text-[13px] font-medium transition-all cursor-pointer rounded-t-lg border border-b-0 text-ds-description hover:text-ds-primary bg-transparent border-transparent">
-            说说 / Whisper
-          </button>
-        </div>
-
-        <!-- Terminal Box -->
-        <div class="rounded-ds-media border border-white/8 bg-black/20 backdrop-blur-xl -mt-3.25 shadow-[0_8px_32px_rgba(0,0,0,0.37)]">
-          <div class="relative flex items-center justify-between px-ds-4 py-ds-3 border-b border-white/6">
-            <div class="flex items-center gap-1.75">
-              <span class="w-2.75 h-2.75 rounded-full bg-[#ff5f57] inline-block"></span>
-              <span class="w-2.75 h-2.75 rounded-full bg-[#febc2e] inline-block"></span>
-              <span class="w-2.75 h-2.75 rounded-full bg-[#28c840] inline-block"></span>
-            </div>
-            <div class="flex items-center">
-              <a id="ds-detail-link" href="/stats/" aria-label="博客统计" class="flex items-center gap-ds-2 text-ds-description text-xs cursor-pointer hover:text-ds-primary transition-colors select-none">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" width="14" height="14" aria-hidden="true">
-                  <path d="M0 0h640v640H0z" fill="none"/>
-                  <path fill="currentColor" d="M384 64c-17.7 0-32 14.3-32 32s14.3 32 32 32h82.7L265.3 329.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L512 173.3V256c0 17.7 14.3 32 32 32s32-14.3 32-32V96c0-17.7-14.3-32-32-32zm-240 96c-44.2 0-80 35.8-80 80v256c0 44.2 35.8 80 80 80h256c44.2 0 80-35.8 80-80v-80c0-17.7-14.3-32-32-32s-32 14.3-32 32v80c0 8.8-7.2 16-16 16H144c-8.8 0-16-7.2-16-16V240c0-8.8 7.2-16 16-16h80c17.7 0 32-14.3 32-32s-14.3-32-32-32z"/>
-                </svg>
-                <span>详情</span>
-              </a>
-              <a id="ds-w-media" href="#" target="_blank" rel="noopener noreferrer" aria-label="包含媒体" title="包含媒体" class="ds-meta flex items-center text-ds-description text-xs cursor-pointer hover:text-ds-primary transition-colors select-none hidden">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
-              </a>
-              <span id="ds-w-time" class="ds-meta text-ds-description text-xs hidden"></span>
-              <a id="ds-w-detail-link" href="/whisper/" aria-label="说说详情" class="ds-meta flex items-center gap-ds-2 text-ds-description text-xs cursor-pointer hover:text-ds-primary transition-colors select-none hidden">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" width="14" height="14" aria-hidden="true">
-                  <path d="M0 0h640v640H0z" fill="none"/>
-                  <path fill="currentColor" d="M384 64c-17.7 0-32 14.3-32 32s14.3 32 32 32h82.7L265.3 329.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L512 173.3V256c0 17.7 14.3 32 32 32s32-14.3 32-32V96c0-17.7-14.3-32-32-32zm-240 96c-44.2 0-80 35.8-80 80v256c0 44.2 35.8 80 80 80h256c44.2 0 80-35.8 80-80v-80c0-17.7-14.3-32-32-32s-32 14.3-32 32v80c0 8.8-7.2 16-16 16H144c-8.8 0-16-7.2-16-16V240c0-8.8 7.2-16 16-16h80c17.7 0 32-14.3 32-32s-14.3-32-32-32z"/>
-                </svg>
-                <span>详情</span>
-              </a>
-            </div>
-            <span id="ds-w-progress" class="ds-w-progress hidden" aria-hidden="true"></span>
-          </div>
-          <div class="p-ds-5 grid items-center">
-            <div id="ds-code-web" class="col-start-1 row-start-1 font-mono text-sm text-ds-primary leading-relaxed">
-              <div class="grid grid-cols-4 gap-x-2 sm:gap-x-4 items-center h-[42.25px]">
-                <div class="flex flex-col items-center justify-center gap-y-0.5">
-                  <span class="text-ds-description text-xs leading-none">文章</span>
-                  <span class="font-bold text-sm leading-tight">{{ $articleCount }}</span>
-                </div>
-                <div class="flex flex-col items-center justify-center gap-y-0.5">
-                  <span class="text-ds-description text-xs leading-none">分类</span>
-                  <span class="font-bold text-sm leading-tight">{{ $categoryCount }}</span>
-                </div>
-                <div class="flex flex-col items-center justify-center gap-y-0.5">
-                  <span class="text-ds-description text-xs leading-none">标签</span>
-                  <span class="font-bold text-sm leading-tight">{{ $tagCount }}</span>
-                </div>
-                <div class="flex flex-col items-center justify-center gap-y-0.5">
-                  <span class="text-ds-description text-xs leading-none">字数</span>
-                  <span class="font-bold text-sm leading-tight">{{ div $totalWords 1000 }}k</span>
-                </div>
-              </div>
-            </div>
-            <div id="ds-code-start" class="ds-whisper col-start-1 row-start-1 text-[13px] text-ds-primary leading-relaxed hidden"></div>
-          </div>
-        </div>
+    <!-- Right Column: Interactive Terminal Card (Mobile: bottom pinned; Desktop: right col) -->
+    <div class="ds-hero-enter flex flex-col gap-ds-3 order-2 mt-auto md:mt-0 w-full mb-1.5 sm:mb-3 md:mb-0"
+      style="--enter-y:20px;animation-duration:0.9s;animation-delay:0.4s">
+      <!-- Tabs -->
+      <div class="flex gap-ds-1 px-ds-1 ml-1.5">
+        <button id="ds-tab-web" type="button"
+          class="ds-tab-btn is-active px-ds-4 py-ds-2 text-[13px] font-medium transition-all cursor-pointer rounded-t-lg border border-b-0 text-ds-primary bg-black/20 backdrop-blur-xl border-white/8">
+          统计 / Stats
+        </button>
+        <button id="ds-tab-start" type="button"
+          class="ds-tab-btn px-ds-4 py-ds-2 text-[13px] font-medium transition-all cursor-pointer rounded-t-lg border border-b-0 text-ds-description hover:text-ds-primary bg-transparent border-transparent">
+          说说 / Whisper
+        </button>
       </div>
 
+      <!-- Terminal Box -->
+      <div
+        class="rounded-ds-media border border-white/8 bg-black/20 backdrop-blur-xl -mt-3.25 shadow-[0_8px_32px_rgba(0,0,0,0.37)]">
+        <div class="relative flex items-center justify-between px-ds-4 py-ds-3 border-b border-white/6">
+          <div class="flex items-center gap-1.75">
+            <span class="w-2.75 h-2.75 rounded-full bg-[#ff5f57] inline-block"></span>
+            <span class="w-2.75 h-2.75 rounded-full bg-[#febc2e] inline-block"></span>
+            <span class="w-2.75 h-2.75 rounded-full bg-[#28c840] inline-block"></span>
+          </div>
+          <div class="flex items-center">
+            <a id="ds-detail-link" href="/stats/" aria-label="博客统计"
+              class="flex items-center gap-ds-2 text-ds-description text-xs cursor-pointer hover:text-ds-primary transition-colors select-none">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" width="14" height="14" aria-hidden="true">
+                <path d="M0 0h640v640H0z" fill="none" />
+                <path fill="currentColor"
+                  d="M384 64c-17.7 0-32 14.3-32 32s14.3 32 32 32h82.7L265.3 329.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L512 173.3V256c0 17.7 14.3 32 32 32s32-14.3 32-32V96c0-17.7-14.3-32-32-32zm-240 96c-44.2 0-80 35.8-80 80v256c0 44.2 35.8 80 80 80h256c44.2 0 80-35.8 80-80v-80c0-17.7-14.3-32-32-32s-32 14.3-32 32v80c0 8.8-7.2 16-16 16H144c-8.8 0-16-7.2-16-16V240c0-8.8 7.2-16 16-16h80c17.7 0 32-14.3 32-32s-14.3-32-32-32z" />
+              </svg>
+              <span>详情</span>
+            </a>
+            <a id="ds-w-media" href="#" target="_blank" rel="noopener noreferrer" aria-label="包含媒体" title="包含媒体"
+              class="ds-meta flex items-center text-ds-description text-xs cursor-pointer hover:text-ds-primary transition-colors select-none hidden">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14" fill="none"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                aria-hidden="true">
+                <rect width="18" height="18" x="3" y="3" rx="2" ry="2" />
+                <circle cx="9" cy="9" r="2" />
+                <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" />
+              </svg>
+            </a>
+            <span id="ds-w-time" class="ds-meta text-ds-description text-xs hidden"></span>
+            <a id="ds-w-detail-link" href="/whisper/" aria-label="说说详情"
+              class="ds-meta flex items-center gap-ds-2 text-ds-description text-xs cursor-pointer hover:text-ds-primary transition-colors select-none hidden">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" width="14" height="14" aria-hidden="true">
+                <path d="M0 0h640v640H0z" fill="none" />
+                <path fill="currentColor"
+                  d="M384 64c-17.7 0-32 14.3-32 32s14.3 32 32 32h82.7L265.3 329.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L512 173.3V256c0 17.7 14.3 32 32 32s32-14.3 32-32V96c0-17.7-14.3-32-32-32zm-240 96c-44.2 0-80 35.8-80 80v256c0 44.2 35.8 80 80 80h256c44.2 0 80-35.8 80-80v-80c0-17.7-14.3-32-32-32s-32 14.3-32 32v80c0 8.8-7.2 16-16 16H144c-8.8 0-16-7.2-16-16V240c0-8.8 7.2-16 16-16h80c17.7 0 32-14.3 32-32s-14.3-32-32-32z" />
+              </svg>
+              <span>详情</span>
+            </a>
+          </div>
+          <span id="ds-w-progress" class="ds-w-progress hidden" aria-hidden="true"></span>
+        </div>
+        <div class="p-ds-5 grid items-center">
+          <div id="ds-code-web" class="col-start-1 row-start-1 font-mono text-sm text-ds-primary leading-relaxed">
+            <div class="grid grid-cols-4 gap-x-2 sm:gap-x-4 items-center h-[42.25px]">
+              <div class="flex flex-col items-center justify-center gap-y-1.5 sm:gap-y-2 ds-stat-item">
+                <span class="text-ds-description text-xs leading-none">文章</span>
+                <span class="font-bold text-sm leading-tight ds-stat-num">{{ $articleCount }}</span>
+              </div>
+              <div class="flex flex-col items-center justify-center gap-y-1.5 sm:gap-y-2 ds-stat-item">
+                <span class="text-ds-description text-xs leading-none">分类</span>
+                <span class="font-bold text-sm leading-tight ds-stat-num">{{ $categoryCount }}</span>
+              </div>
+              <div class="flex flex-col items-center justify-center gap-y-1.5 sm:gap-y-2 ds-stat-item">
+                <span class="text-ds-description text-xs leading-none">标签</span>
+                <span class="font-bold text-sm leading-tight ds-stat-num">{{ $tagCount }}</span>
+              </div>
+              <div class="flex flex-col items-center justify-center gap-y-1.5 sm:gap-y-2 ds-stat-item">
+                <span class="text-ds-description text-xs leading-none">字数</span>
+                <span class="font-bold text-sm leading-tight ds-stat-num">{{ div $totalWords 1000 }}k</span>
+              </div>
+            </div>
+          </div>
+          <div id="ds-code-start"
+            class="ds-whisper col-start-1 row-start-1 text-[13px] text-ds-primary leading-relaxed hidden"></div>
+        </div>
+      </div>
     </div>
 
-    <!-- Hero Bottom Section (Modern Interactive Glass Announcement Card - Desktop only: md+) -->
-    <div class="ds-hero-bottom ds-hero-enter z-10 hidden md:flex flex-col items-center gap-3 md:gap-4 px-4 text-center pointer-events-auto w-full max-w-4xl mx-auto md:absolute md:bottom-8 md:left-0 md:right-0" style="--enter-y:24px;--enter-blur:8px;animation-duration:0.9s;animation-delay:0.5s">
-      {{- $latestPosts := first 1 (where .Site.RegularPages "Type" "in" .Site.Params.mainSections) -}}
-      {{- if eq (len $latestPosts) 0 -}}
-        {{- $latestPosts = first 1 (where .Site.RegularPages "Kind" "page") -}}
-      {{- end -}}
-      {{- range $latestPosts -}}
-        <a href="{{ .RelPermalink }}" class="ds-hero-latest-card group relative flex flex-col items-center gap-2 px-5 py-3.5 sm:px-6 sm:py-4 rounded-ds-media border border-white/8 hover:border-white/20 bg-black/20 hover:bg-black/30 backdrop-blur-xl transition-all duration-300 shadow-[0_8px_32px_rgba(0,0,0,0.37)] hover:shadow-[0_12px_40px_rgba(0,0,0,0.5)] hover:scale-[1.01] max-w-2xl w-full mx-auto cursor-pointer no-underline">
-          
-          <!-- Row 1: Badges & Meta Info -->
-          <div class="flex flex-wrap items-center justify-center gap-2 text-xs text-white/60">
-            <span class="inline-flex items-center rounded-[6px] p-[1px]" style="background:linear-gradient(135deg, rgba(255,255,255,0.42) 0%, rgba(255,255,255,0.08) 35%, rgba(255,255,255,0.04) 65%, rgba(255,255,255,0.28) 100%);box-shadow:0 0 12px rgba(255,255,255,0.08)">
-              <span class="px-2 py-0.5 rounded-[5px] bg-black/30 font-mono text-[11px] font-semibold text-white/95 uppercase tracking-wider">New</span>
-            </span>
+  </div>
 
-            {{ with .Params.categories }}
-              {{ range first 1 . }}
-                <span class="w-1 h-1 rounded-full bg-white/30"></span>
-                <span class="text-cyan-300/90 font-medium">{{ . }}</span>
-              {{ end }}
-            {{ end }}
+  <!-- Hero Bottom Section (Modern Interactive Glass Announcement Card - Desktop only: md+) -->
+  <div
+    class="ds-hero-bottom ds-hero-enter z-10 hidden md:flex flex-col items-center gap-3 md:gap-4 px-4 text-center pointer-events-auto w-full max-w-4xl mx-auto md:absolute md:bottom-8 md:left-0 md:right-0"
+    style="--enter-y:24px;--enter-blur:8px;animation-duration:0.9s;animation-delay:0.5s">
+    {{- $latestPosts := first 1 (where .Site.RegularPages "Type" "in" .Site.Params.mainSections) -}}
+    {{- if eq (len $latestPosts) 0 -}}
+    {{- $latestPosts = first 1 (where .Site.RegularPages "Kind" "page") -}}
+    {{- end -}}
+    {{- range $latestPosts -}}
+    <a href="{{ .RelPermalink }}"
+      class="ds-hero-latest-card group relative flex flex-col items-center gap-2 px-5 py-3.5 sm:px-6 sm:py-4 rounded-ds-media border border-white/8 hover:border-white/20 bg-black/20 hover:bg-black/30 backdrop-blur-xl transition-all duration-300 shadow-[0_8px_32px_rgba(0,0,0,0.37)] hover:shadow-[0_12px_40px_rgba(0,0,0,0.5)] hover:scale-[1.01] max-w-2xl w-full mx-auto cursor-pointer no-underline">
 
-            <span class="w-1 h-1 rounded-full bg-white/30"></span>
-            <time datetime="{{ .Date.Format "2006-01-02T15:04:05-07:00" }}">{{ .Date.Format "Jan 02, 2006" }}</time>
+      <!-- Row 1: Badges & Meta Info -->
+      <div class="flex flex-wrap items-center justify-center gap-2 text-xs text-white/60">
+        <span class="inline-flex items-center rounded-[6px] p-[1px]"
+          style="background:linear-gradient(135deg, rgba(255,255,255,0.42) 0%, rgba(255,255,255,0.08) 35%, rgba(255,255,255,0.04) 65%, rgba(255,255,255,0.28) 100%);box-shadow:0 0 12px rgba(255,255,255,0.08)">
+          <span
+            class="px-2 py-0.5 rounded-[5px] bg-black/30 font-mono text-[11px] font-semibold text-white/95 uppercase tracking-wider">New</span>
+        </span>
 
-            <span class="w-1 h-1 rounded-full bg-white/30 hidden sm:inline-block"></span>
-            <span class="hidden sm:inline-block">{{ .ReadingTime }} 分钟阅读</span>
-          </div>
+        {{ with .Params.categories }}
+        {{ range first 1 . }}
+        <span class="w-1 h-1 rounded-full bg-white/30"></span>
+        <span class="text-cyan-300/90 font-medium">{{ . }}</span>
+        {{ end }}
+        {{ end }}
 
-          <!-- Row 2: Title with Hover Arrow Indicator -->
-          <div class="flex items-center justify-center gap-2 text-lg sm:text-xl md:text-2xl font-bold tracking-tight text-white group-hover:text-cyan-300 transition-colors text-center leading-snug">
-            <span class="line-clamp-1">{{ .Title }}</span>
-            <svg class="size-4.5 w-4.5 h-4.5 sm:size-5 sm:w-5 sm:h-5 transition-transform duration-300 group-hover:translate-x-1 text-white/50 group-hover:text-cyan-300 shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M5 12h14"></path>
-              <path d="m12 5 7 7-7 7"></path>
-            </svg>
-          </div>
+        <span class="w-1 h-1 rounded-full bg-white/30"></span>
+        <time datetime="{{ .Date.Format "2006-01-02T15:04:05-07:00" }}">{{ .Date.Format "Jan 02, 2006" }}</time>
 
-          <!-- Row 3: Summary / Excerpt Snippet -->
-          {{ $summaryText := "" }}
-          {{ if .Description }}
-            {{ $summaryText = .Description }}
-          {{ else if .Params.summary }}
-            {{ $summaryText = .Params.summary }}
-          {{ else if .Summary }}
-            {{ $summaryText = .Summary | plainify }}
-          {{ end }}
-          {{ with $summaryText }}
-            <p class="text-xs sm:text-[13px] text-white/60 line-clamp-1 max-w-xl text-center font-normal leading-relaxed m-0">
-              {{ . | truncate 80 }}
-            </p>
-          {{ end }}
+        <span class="w-1 h-1 rounded-full bg-white/30 hidden sm:inline-block"></span>
+        <span class="hidden sm:inline-block">{{ .ReadingTime }} 分钟阅读</span>
+      </div>
 
-        </a>
-      {{- end -}}
-    </div>
+      <!-- Row 2: Title with Hover Arrow Indicator -->
+      <div
+        class="flex items-center justify-center gap-2 text-lg sm:text-xl md:text-2xl font-bold tracking-tight text-white group-hover:text-cyan-300 transition-colors text-center leading-snug">
+        <span class="line-clamp-1">{{ .Title }}</span>
+        <svg
+          class="size-4.5 w-4.5 h-4.5 sm:size-5 sm:w-5 sm:h-5 transition-transform duration-300 group-hover:translate-x-1 text-white/50 group-hover:text-cyan-300 shrink-0"
+          xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round">
+          <path d="M5 12h14"></path>
+          <path d="m12 5 7 7-7 7"></path>
+        </svg>
+      </div>
 
-  </section>
+      <!-- Row 3: Summary / Excerpt Snippet -->
+      {{ $summaryText := "" }}
+      {{ if .Description }}
+      {{ $summaryText = .Description }}
+      {{ else if .Params.summary }}
+      {{ $summaryText = .Params.summary }}
+      {{ else if .Summary }}
+      {{ $summaryText = .Summary | plainify }}
+      {{ end }}
+      {{ with $summaryText }}
+      <p class="text-xs sm:text-[13px] text-white/60 line-clamp-1 max-w-xl text-center font-normal leading-relaxed m-0">
+        {{ . | truncate 80 }}
+      </p>
+      {{ end }}
 
-  <!-- DeepSeek Harness Encapsulated Styles -->
-  <style>
-  :root, html, body {
+    </a>
+    {{- end -}}
+  </div>
+
+</section>
+
+<!-- DeepSeek Harness Encapsulated Styles -->
+<style>
+  :root,
+  html,
+  body {
     overflow-x: clip;
   }
 
@@ -243,6 +289,7 @@
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
   }
+
   @media (min-width: 768px) {
     .ds-header-wrapper {
       width: min(100% - 96px, 1280px);
@@ -266,13 +313,13 @@
     -webkit-backface-visibility: hidden;
     backface-visibility: hidden;
     transition: max-width 0.45s cubic-bezier(0.16, 1, 0.3, 1),
-                padding 0.45s cubic-bezier(0.16, 1, 0.3, 1),
-                background 0.35s ease,
-                backdrop-filter 0.35s ease,
-                -webkit-backdrop-filter 0.35s ease,
-                box-shadow 0.35s ease,
-                border-color 0.35s ease,
-                color 0.3s ease;
+      padding 0.45s cubic-bezier(0.16, 1, 0.3, 1),
+      background 0.35s ease,
+      backdrop-filter 0.35s ease,
+      -webkit-backdrop-filter 0.35s ease,
+      box-shadow 0.35s ease,
+      border-color 0.35s ease,
+      color 0.3s ease;
   }
 
   /* Scrolled floating capsule state */
@@ -280,6 +327,7 @@
     max-width: min(100%, 1024px);
     padding: 5px 12px;
   }
+
   @media (min-width: 1024px) {
     .ds-header-bar.is-scrolled {
       max-width: min(100%, 1100px);
@@ -452,6 +500,7 @@
       transform: translateY(var(--enter-y, 20px));
       filter: blur(var(--enter-blur, 0));
     }
+
     100% {
       opacity: 1;
       transform: translateY(0);
@@ -467,11 +516,13 @@
     width: min(100% - 48px, 1140px);
     margin-inline: auto;
   }
+
   @media (min-width: 768px) {
     .ds-container {
       width: min(100% - 144px, 1140px);
     }
   }
+
   @media (min-width: 1560px) {
     .ds-container {
       width: min(100% - 160px, 1280px);
@@ -485,6 +536,7 @@
     letter-spacing: -0.02em;
     line-height: 1.5;
   }
+
   @media (min-width: 768px) {
     .ds-text-hero {
       font-size: 46px;
@@ -498,25 +550,77 @@
     font-weight: 400;
   }
 
-  .text-ds-brand { color: var(--ds-color-brand); }
-  .text-ds-primary { color: var(--ds-color-text-primary); }
-  .text-ds-description { color: var(--ds-color-text-description); }
+  .text-ds-brand {
+    color: var(--ds-color-brand);
+  }
 
-  .gap-ds-1 { gap: var(--ds-space-1); }
-  .gap-ds-2 { gap: var(--ds-space-2); }
-  .gap-ds-3 { gap: var(--ds-space-3); }
-  .gap-ds-4 { gap: var(--ds-space-4); }
-  .gap-ds-7 { gap: var(--ds-space-7); }
-  .gap-ds-9 { gap: var(--ds-space-9); }
+  .text-ds-primary {
+    color: var(--ds-color-text-primary);
+  }
 
-  .px-ds-1 { padding-left: var(--ds-space-1); padding-right: var(--ds-space-1); }
-  .px-ds-4 { padding-left: var(--ds-space-4); padding-right: var(--ds-space-4); }
-  .py-ds-2 { padding-top: var(--ds-space-2); padding-bottom: var(--ds-space-2); }
-  .py-ds-3 { padding-top: var(--ds-space-3); padding-bottom: var(--ds-space-3); }
-  .p-ds-5 { padding: var(--ds-space-5); }
-  .pt-ds-11 { padding-top: var(--ds-space-11); }
-  .pb-ds-11 { padding-bottom: var(--ds-space-11); }
-  .mt-ds-2 { margin-top: var(--ds-space-2); }
+  .text-ds-description {
+    color: var(--ds-color-text-description);
+  }
+
+  .gap-ds-1 {
+    gap: var(--ds-space-1);
+  }
+
+  .gap-ds-2 {
+    gap: var(--ds-space-2);
+  }
+
+  .gap-ds-3 {
+    gap: var(--ds-space-3);
+  }
+
+  .gap-ds-4 {
+    gap: var(--ds-space-4);
+  }
+
+  .gap-ds-7 {
+    gap: var(--ds-space-7);
+  }
+
+  .gap-ds-9 {
+    gap: var(--ds-space-9);
+  }
+
+  .px-ds-1 {
+    padding-left: var(--ds-space-1);
+    padding-right: var(--ds-space-1);
+  }
+
+  .px-ds-4 {
+    padding-left: var(--ds-space-4);
+    padding-right: var(--ds-space-4);
+  }
+
+  .py-ds-2 {
+    padding-top: var(--ds-space-2);
+    padding-bottom: var(--ds-space-2);
+  }
+
+  .py-ds-3 {
+    padding-top: var(--ds-space-3);
+    padding-bottom: var(--ds-space-3);
+  }
+
+  .p-ds-5 {
+    padding: var(--ds-space-5);
+  }
+
+  .pt-ds-11 {
+    padding-top: var(--ds-space-11);
+  }
+
+  .pb-ds-11 {
+    padding-bottom: var(--ds-space-11);
+  }
+
+  .mt-ds-2 {
+    margin-top: var(--ds-space-2);
+  }
 
   .rounded-ds-media {
     border-radius: var(--ds-radius-media);
@@ -525,7 +629,8 @@
     backface-visibility: hidden;
   }
 
-  .ds-btn-primary, .ds-btn-secondary {
+  .ds-btn-primary,
+  .ds-btn-secondary {
     position: relative;
     display: inline-flex;
     align-items: center;
@@ -552,6 +657,7 @@
     color: var(--ds-btn-primary-text);
     border: 1px solid transparent;
   }
+
   .ds-btn-secondary {
     background: var(--ds-btn-secondary-bg);
     color: var(--ds-btn-secondary-text);
@@ -559,6 +665,7 @@
     backdrop-filter: blur(var(--ds-blur-glass));
     -webkit-backdrop-filter: blur(var(--ds-blur-glass));
   }
+
   .ds-btn-secondary:hover {
     border-color: var(--ds-btn-secondary-hover-border);
   }
@@ -583,12 +690,14 @@
     border-radius: 9999px;
     transition: width 0.35s ease, border-color 0.35s ease, background-color 0.2s ease;
   }
+
   .ds-social-btn svg {
     width: 20px;
     height: 20px;
     flex-shrink: 0;
     display: block;
   }
+
   .ds-social-btn .ds-social-label {
     display: none;
     align-items: center;
@@ -605,16 +714,34 @@
       padding: 0 0 0 10px;
       justify-content: flex-start;
     }
+
     .ds-social-btn .ds-social-label {
       display: inline-flex;
     }
+
     .ds-social-btn.is-expanded {
       width: 170px;
     }
+
     .ds-social-btn.is-expanded .ds-social-label {
       max-width: 130px;
       opacity: 1;
     }
+  }
+
+  /* Hero Stats Tab: numbers font & vertical row spacing */
+  #ds-code-web .ds-stat-item {
+    row-gap: 6px;
+  }
+
+  @media (min-width: 640px) {
+    #ds-code-web .ds-stat-item {
+      row-gap: 7px;
+    }
+  }
+
+  #ds-code-web .ds-stat-num {
+    font-family: var(--font-mono);
   }
 
   /* Whisper tab */
@@ -622,6 +749,7 @@
     position: relative;
     overscroll-behavior: contain;
   }
+
   .ds-w-prev,
   .ds-w-next {
     position: absolute;
@@ -639,19 +767,28 @@
     opacity: 0;
     pointer-events: none;
   }
+
   .ds-w-prev svg,
   .ds-w-next svg {
     width: 52px;
     height: 52px;
     opacity: 0.5;
   }
-  .ds-w-prev { left: -30px; }
-  .ds-w-next { right: -30px; }
+
+  .ds-w-prev {
+    left: -30px;
+  }
+
+  .ds-w-next {
+    right: -30px;
+  }
+
   .ds-whisper:hover .ds-w-prev,
   .ds-whisper:hover .ds-w-next {
     opacity: 1;
     pointer-events: auto;
   }
+
   .ds-w-progress {
     position: absolute;
     left: 0;
@@ -664,23 +801,34 @@
     pointer-events: none;
     z-index: 5;
   }
+
   .ds-w-progress.is-running {
     animation: ds-w-progress-run 6s linear forwards;
   }
+
   @keyframes ds-w-progress-run {
-    from { transform: scaleX(0); }
-    to { transform: scaleX(1); }
+    from {
+      transform: scaleX(0);
+    }
+
+    to {
+      transform: scaleX(1);
+    }
   }
+
   .ds-w-stage {
     position: relative;
     overflow: hidden;
   }
+
   .ds-w-loading {
     min-height: calc(5 * 1.625em + 8px);
   }
+
   .ds-w-card {
     position: relative;
   }
+
   .ds-w-slide-in {
     position: absolute;
     inset: 0;
@@ -690,11 +838,13 @@
     pointer-events: none;
     transition: opacity 0.45s ease, transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
   }
+
   .ds-w-slide-in.is-active {
     opacity: 1;
     transform: translateX(0);
     pointer-events: auto;
   }
+
   .ds-w-leaving {
     position: absolute;
     inset: 0;
@@ -781,7 +931,7 @@
     transform: translateY(0);
   }
 
-  .ds-meta:not(.hidden) + .ds-meta:not(.hidden)::before {
+  .ds-meta:not(.hidden)+.ds-meta:not(.hidden)::before {
     content: '·';
     margin-right: 0.5rem;
     margin-left: 0.5rem;
@@ -791,23 +941,28 @@
   .ds-whisper .ds-w-content p {
     margin: 0 0 0.5em;
   }
+
   .ds-whisper .ds-w-content p:last-child {
     margin-bottom: 0;
   }
+
   .ds-whisper .ds-w-content a {
     color: var(--ds-color-brand);
     text-decoration: underline;
     text-decoration-color: rgba(103, 153, 254, 0.4);
     text-underline-offset: 2px;
   }
+
   .ds-whisper .ds-w-content a:hover {
     text-decoration-color: var(--ds-color-brand);
   }
+
   .ds-keywords-line::before {
     content: '#';
     margin-right: 0.3em;
     color: var(--ds-color-brand);
   }
+
   .ds-keyword {
     padding: 0 0.12em;
     margin: 0 -0.12em;
@@ -818,10 +973,12 @@
     background-position: 0 100%;
     transition: background-size 0.25s ease, color 0.25s ease;
   }
+
   .ds-keyword:hover {
     background-size: 100% 50%;
     color: var(--ds-color-text-primary);
   }
+
   .ds-motto-caret {
     display: inline-block;
     width: 2px;
@@ -831,15 +988,24 @@
     background: currentColor;
     animation: ds-caret-blink 0.9s steps(1) infinite;
   }
-  @keyframes ds-caret-blink {
-    0%, 49% { opacity: 1; }
-    50%, 100% { opacity: 0; }
-  }
-  </style>
 
-  <!-- Interaction Scripts (Header, Terminal Tabs, Accordion, Motto Typewriter, Mastodon Whisper) -->
-  <script>
-  (function() {
+  @keyframes ds-caret-blink {
+
+    0%,
+    49% {
+      opacity: 1;
+    }
+
+    50%,
+    100% {
+      opacity: 0;
+    }
+  }
+</style>
+
+<!-- Interaction Scripts (Header, Terminal Tabs, Accordion, Motto Typewriter, Mastodon Whisper) -->
+<script>
+  (function () {
     // 1. Tab Switching
     function initHeroInteractions() {
       const tabWeb = document.getElementById('ds-tab-web');
@@ -1168,7 +1334,7 @@
           const startScroll = 30; // 滚动超过 30px 后开始产生渐变
           const fadeDistance = Math.max(480, (window.innerHeight || 800) * 0.55); // 动态延续约半屏的平滑过渡距离（~500px）
           const rawProgress = Math.min(1, Math.max(0, (scrollY - startScroll) / fadeDistance));
-          
+
           // Smoothstep 平滑缓动曲线
           const smooth = rawProgress * rawProgress * (3 - 2 * rawProgress);
 
@@ -1271,5 +1437,5 @@
       startAll();
     }
   })();
-  </script>
+</script>
 {{- end -}}
