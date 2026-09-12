@@ -44,38 +44,38 @@
 	<div class="friends-links grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
 		{{ $linksResource := resources.Get "data/friends/links.json" }}
 		{{ if $linksResource }}
-			{{ $links := $linksResource | transform.Unmarshal }}
-			{{ if $links }}
-				{{ range $links }}
-					{{ $name := .name }}
-					{{ $biography := .biography }}
-					{{ $url := .url }}
-					{{ $domainScheme := (replace (replace $url "http://" "") "https://" "") }}
-					{{ $domainParts := split $domainScheme "/" }}
-					{{ $domain := index $domainParts 0 }}
-					{{ $avatar := .avatar }}
-					<a target="_blank" href="/go/?target={{- $url | base64Encode -}}" title="{{- $name -}}" class="block"
-						rel="noopener noreferrer">
-						<div
-							class="group flex items-center p-4 bg-gray-100 dark:bg-bg-dimmed-secondary rounded-lg hover:scale-105 transition-all duration-300 ease-in-out">
-							<div class="shrink-0 mr-4">
-								<img class="lazy nozoom w-16 h-16 rounded-full m-0" loading="lazy"
-									src="https://cn.cravatar.com/avatar/{{- $avatar -}}" alt="{{- $name -}}"
-									onerror="this.onerror=null; this.src='/404.png';">
-							</div>
-							<div class="grow min-w-0">
-								<div class="flex items-center mb-2">
-									<img class="lazy nozoom w-4 h-4 mr-2 m-0" alt=""
-										src="https://t3.gstatic.cn/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&size=16&url={{- $url -}}">
-									<span class="font-medium text-zinc-900 dark:text-text-dimmed-primary truncate">{{- $name -}}</span>
-								</div>
-								<p class="text-sm text-zinc-700 dark:text-text-dimmed-secondary line-clamp-2 m-0 min-h-10">{{- $biography -}}
-								</p>
-							</div>
-						</div>
-					</a>
-				{{ end }}
-			{{ end }}
+		{{ $links := $linksResource | transform.Unmarshal }}
+		{{ if $links }}
+		{{ range $links }}
+		{{ $name := .name }}
+		{{ $biography := .biography }}
+		{{ $url := .url }}
+		{{ $domainScheme := (replace (replace $url "http://" "") "https://" "") }}
+		{{ $domainParts := split $domainScheme "/" }}
+		{{ $domain := index $domainParts 0 }}
+		{{ $avatar := .avatar }}
+		<a target="_blank" href="/go/?target={{- $url | base64Encode -}}" title="{{- $name -}}" class="block"
+			rel="noopener noreferrer">
+			<div
+				class="group flex items-center p-4 bg-gray-100 dark:bg-bg-dimmed-secondary rounded-lg hover:scale-105 transition-all duration-300 ease-in-out">
+				<div class="shrink-0 mr-4">
+					<img class="lazy nozoom w-16 h-16 rounded-full m-0" loading="lazy"
+						src="https://weavatar.com/avatar/{{- $avatar -}}" alt="{{- $name -}}"
+						onerror="this.onerror=null; this.src='/404.png';">
+				</div>
+				<div class="grow min-w-0">
+					<div class="flex items-center mb-2">
+						<img class="lazy nozoom w-4 h-4 mr-2 m-0" alt=""
+							src="https://t3.gstatic.cn/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&size=16&url={{- $url -}}">
+						<span class="font-medium text-zinc-900 dark:text-text-dimmed-primary truncate">{{- $name -}}</span>
+					</div>
+					<p class="text-sm text-zinc-700 dark:text-text-dimmed-secondary line-clamp-2 m-0 min-h-10">{{- $biography -}}
+					</p>
+				</div>
+			</div>
+		</a>
+		{{ end }}
+		{{ end }}
 		{{ end }}
 	</div>
 </div>
