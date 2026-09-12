@@ -39,7 +39,7 @@
 
   <!-- Content Grid Container (left + right columns as one block) -->
   <div
-    class="ds-hero-content ds-container flex flex-col justify-between min-h-[100svh] pt-20 sm:pt-24 pb-6 sm:pb-8 md:min-h-0 md:grid md:grid-cols-[60fr_40fr] md:gap-ds-9 md:items-center md:pt-36 md:pb-ds-11 w-full mx-auto">
+    class="ds-hero-content ds-container flex flex-col justify-between min-h-[100svh] pt-20 sm:pt-24 pb-6 sm:pb-8 md:min-h-0 md:grid md:grid-cols-[60fr_40fr] md:gap-ds-9 md:items-start md:pt-36 md:pb-ds-11 w-full mx-auto">
 
     <!-- Left Column: Title & CTA -->
     <div class="flex flex-col gap-ds-7 order-1 my-auto md:my-0">
@@ -112,7 +112,7 @@
     </div>
 
     <!-- Right Column: Interactive Terminal Card (Mobile: bottom pinned; Desktop: right col) -->
-    <div class="ds-hero-enter flex flex-col gap-ds-3 order-2 mt-auto md:mt-0 w-full mb-1.5 sm:mb-3 md:mb-0"
+    <div class="ds-hero-enter flex flex-col gap-ds-3 order-2 mt-auto md:mt-0 md:self-start w-full mb-1.5 sm:mb-3 md:mb-0"
       style="--enter-y:20px;animation-duration:0.9s;animation-delay:0.4s">
       <!-- Tabs -->
       <div class="flex gap-ds-1 px-ds-1 ml-1.5">
@@ -168,7 +168,7 @@
           </div>
           <span id="ds-w-progress" class="ds-w-progress hidden" aria-hidden="true"></span>
         </div>
-        <div class="p-ds-5 grid items-center">
+        <div class="p-ds-5 grid items-start">
           <div id="ds-code-web" class="col-start-1 row-start-1 font-mono text-sm text-ds-primary leading-relaxed">
             <div class="grid grid-cols-4 gap-x-2 sm:gap-x-4 items-center h-[42.25px]">
               <div class="flex flex-col items-center justify-center gap-y-1.5 sm:gap-y-2 ds-stat-item">
@@ -819,10 +819,11 @@
   .ds-w-stage {
     position: relative;
     overflow: hidden;
+    transition: height 0.45s cubic-bezier(0.22, 1, 0.36, 1);
   }
 
   .ds-w-loading {
-    min-height: calc(5 * 1.625em + 8px);
+    min-height: 42.25px;
   }
 
   .ds-w-card {
@@ -831,7 +832,9 @@
 
   .ds-w-slide-in {
     position: absolute;
-    inset: 0;
+    top: 0;
+    left: 0;
+    width: 100%;
     z-index: 4;
     opacity: 0;
     transform: translateX(28px);
@@ -847,7 +850,9 @@
 
   .ds-w-leaving {
     position: absolute;
-    inset: 0;
+    top: 0;
+    left: 0;
+    width: 100%;
     z-index: 4;
     opacity: 0;
     transform: translateX(-28px);
@@ -861,11 +866,9 @@
     -webkit-box-orient: vertical;
     line-clamp: 5;
     overflow: hidden;
-    height: calc(5 * 1.625em);
-    min-height: calc(5 * 1.625em);
+    max-height: calc(5 * 1.625em);
     line-height: 1.625;
     text-overflow: ellipsis;
-    transition: height 0.25s ease;
   }
 
   .ds-w-card.is-expanded .ds-w-content {
@@ -874,7 +877,7 @@
     line-clamp: unset;
     overflow: visible;
     height: auto;
-    min-height: calc(5 * 1.625em);
+    max-height: none;
   }
 
   .ds-w-more {
@@ -1225,13 +1228,18 @@
           const swap = (next) => {
             if (next === index || swapping) return;
             swapping = true;
-            stage.style.height = `${stage.offsetHeight}px`;
+
+            const curH = cur.offsetHeight;
+            stage.style.height = `${curH}px`;
 
             const nxt = makeCard(next);
             nxt.classList.add('ds-w-slide-in');
             stage.appendChild(nxt);
             setupCard(nxt);
-            void nxt.offsetWidth;
+
+            const nextH = nxt.offsetHeight;
+            void stage.offsetHeight;
+            stage.style.height = `${nextH}px`;
 
             cur.classList.add('ds-w-leaving');
             nxt.classList.add('is-active');
